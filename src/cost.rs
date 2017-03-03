@@ -1,6 +1,6 @@
 use std::ops::{Index, IndexMut, Add, AddAssign, Sub, SubAssign};
 use color::Color;
-use std::cmp::min;
+use std::cmp::{min, max};
 use iter::CopyingIterator;
 
 #[derive(Debug)]
@@ -43,6 +43,17 @@ impl Tokens {
         }
     }
 
+    pub fn max(&self, other: &Tokens) -> Tokens {
+        Tokens {
+            black: max(self.black, other.black),
+            blue: max(self.blue, other.blue),
+            green: max(self.green, other.green),
+            red: max(self.red, other.red),
+            white: max(self.white, other.white),
+            joker: max(self.joker, other.joker),
+        }
+    }
+
     pub fn one(color: Color) -> Tokens {
         let mut tokens = Tokens::empty();
         tokens[color] = 1;
@@ -69,6 +80,7 @@ impl Tokens {
 
     // Generate an array that contains all the possible permutations for discarding tokens, up to 3
     // TODO(bouk): optimize if we don't need to know all permutations
+    // TODO(bouk): convert to a bunch of iterators so we 're not allocating all this shit
     pub fn discard_permutations(&self) -> [Vec<Tokens>; 4] {
         let mut result = [vec![Tokens::empty()], Vec::with_capacity(5), Vec::with_capacity(15), Vec::with_capacity(20)];
         for (color1, iter2) in Color::all_except_joker().copying() {

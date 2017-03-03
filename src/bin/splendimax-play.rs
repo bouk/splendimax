@@ -16,6 +16,7 @@ fn main() {
     let mut stdin = io::stdin();
     let mut state = State::new(2);
     let mut rng = thread_rng();
+    let mut round = 0;
     state.print(&mut stdout);
     loop {
         if state.is_terminal() {
@@ -32,6 +33,7 @@ fn main() {
                 state.print(&mut stdout);
                 panic!("No moves");
             }
+            round += 1;
         } else {
             state.print(&mut stdout);
             'outer: loop {
@@ -85,24 +87,24 @@ fn main() {
                                     }
                                 }
 
-                                let card;
+                                let index: u8;
                                 loop {
                                     let c = iter.next();
                                     match c {
                                         Some('1') => {
-                                            card = cards.get(0);
+                                            index = 0;
                                             break;
                                         },
                                         Some('2') => {
-                                            card = cards.get(1);
+                                            index = 1;
                                             break;
                                         },
                                         Some('3') => {
-                                            card = cards.get(2);
+                                            index = 2;
                                             break;
                                         },
                                         Some('4') => {
-                                            card = cards.get(3);
+                                            index = 3;
                                             break;
                                         },
                                         Some(_) => continue,
@@ -113,9 +115,18 @@ fn main() {
                                     }
                                 }
 
-                                if let Some(card) = card {
+                                if let Some(ref card) = cards.get(index as usize) {
                                     if let Some(cost) = state.adversary.cost_for(card) {
-                                        mov = Move::Buy { card: *card, deck: deck, cost: cost };
+                                        let mut tokens_from_cards = state.adversary.tokens_from_cards();
+                                        tokens_from_cards[card.color] += 1;
+
+                                        let noble = state.nobles
+                                            .iter()
+                                            .enumerate()
+                                            .filter(|&(_, ref noble)| tokens_from_cards.can_buy(&noble.cost))
+                                            .map(|(i, _)| i as u8)
+                                            .next();
+                                        mov = Move::Buy { index: index, deck: deck, cost: cost, noble: noble };
                                     } else {
                                         println!("can't afford");
                                         break 'outer;
@@ -154,24 +165,24 @@ fn main() {
                                     }
                                 }
 
-                                let card;
+                                let index: u8;
                                 loop {
                                     let c = iter.next();
                                     match c {
                                         Some('1') => {
-                                            card = cards.get(0);
+                                            index = 0;
                                             break;
                                         },
                                         Some('2') => {
-                                            card = cards.get(1);
+                                            index = 1;
                                             break;
                                         },
                                         Some('3') => {
-                                            card = cards.get(2);
+                                            index = 2;
                                             break;
                                         },
                                         Some('4') => {
-                                            card = cards.get(3);
+                                            index = 3;
                                             break;
                                         },
                                         Some(_) => continue,
@@ -182,28 +193,28 @@ fn main() {
                                     }
                                 }
 
-                                if let Some(card) = card {
-                                    mov = Move::Reserve { card: *card, deck: deck, drop: Tokens::empty(), joker: state.bank.joker > 0 };
+                                if (index as usize) < cards.len() {
+                                    mov = Move::Reserve { index: index, deck: deck, drop: Tokens::empty(), joker: state.bank.joker > 0 };
                                 } else {
                                     println!("invalid card");
                                     break 'outer;
                                 }
                             },
                             Some('u') => {
-                                let card;
+                                let index: u8;
                                 loop {
                                     let c = iter.next();
                                     match c {
                                         Some('1') => {
-                                            card = state.adversary.reserved.get(0);
+                                            index = 0;
                                             break;
                                         },
                                         Some('2') => {
-                                            card = state.adversary.reserved.get(1);
+                                            index = 1;
                                             break;
                                         },
                                         Some('3') => {
-                                            card = state.adversary.reserved.get(2);
+                                            index = 2;
                                             break;
                                         },
                                         Some(_) => continue,
@@ -213,9 +224,19 @@ fn main() {
                                         },
                                     }
                                 }
-                                if let Some(card) = card {
+
+                                if let Some(ref card) = state.adversary.reserved.get(index as usize) {
                                     if let Some(cost) = state.adversary.cost_for(card) {
-                                        mov = Move::BuyReserved { card: *card, cost: cost };
+                                        let mut tokens_from_cards = state.adversary.tokens_from_cards();
+                                        tokens_from_cards[card.color] += 1;
+
+                                        let noble = state.nobles
+                                            .iter()
+                                            .enumerate()
+                                            .filter(|&(_, ref noble)| tokens_from_cards.can_buy(&noble.cost))
+                                            .map(|(i, _)| i as u8)
+                                            .next();
+                                        mov = Move::BuyReserved { index: index, cost: cost, noble: noble };
                                     } else {
                                         println!("can't afford");
                                         break 'outer;
@@ -264,4 +285,5 @@ fn main() {
         }
         println!("");
     }
+    println!("round: {}", round);
 }

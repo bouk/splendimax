@@ -18,7 +18,6 @@ fn create_card(color: Color, points: u8, black: u8, blue: u8, green: u8, red: u8
 
 #[derive(Debug)]
 #[derive(Clone)]
-#[derive(Copy)]
 #[derive(PartialEq)]
 pub struct Card {
     pub color: Color,

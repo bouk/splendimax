@@ -2,8 +2,8 @@ extern crate splendimax;
 extern crate rand;
 
 use std::io;
-use std::time::Duration;
-use std::thread::sleep;
+// use std::time::Duration;
+// use std::thread::sleep;
 use splendimax::algo::state::State as AlgoState;
 use splendimax::algo::state::Score;
 use splendimax::algo::alphabeta;
@@ -42,9 +42,11 @@ fn main() {
     let mut stdout = io::stdout();
     let mut state = State::new(2);
     let mut rng = thread_rng();
+    let mut round = 0;
     loop {
         if state.is_terminal() {
             state.print(&mut stdout);
+            println!("round: {}", round);
             break
         }
         let moves;
@@ -53,16 +55,18 @@ fn main() {
         } else {
             let mut opposite = OppositeState(&mut state);
             moves = alphabeta(&mut opposite);
+            round += 1;
         }
 
         if let Some(mov) = rng.choose(&moves) {
-            state.print(&mut stdout);
-            println!("{:?}", mov);
+            // state.print(&mut stdout);
+            // println!("{:?}", mov);
             state.apply(&mov);
         } else {
             state.print(&mut stdout);
             panic!("No moves");
         }
+
         if state.cards1.len() < 4 {
             if let Some(card) = state.deck1.pop() {
                 state.cards1.push(card);
@@ -78,7 +82,7 @@ fn main() {
                 state.cards3.push(card);
             }
         }
-        sleep(Duration::from_secs(1));
+        // sleep(Duration::from_secs(1));
     }
     //}
 }
