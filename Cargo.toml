@@ -1,0 +1,7 @@
+[package]
+name = "splendimax"
+version = "0.1.0"
+authors = ["Bouke van der Bijl <boukevanderbijl@gmail.com>"]
+
+[dependencies]
+rand = "0.3"
